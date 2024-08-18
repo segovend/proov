@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ilma Soovituste Rakendus</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Mida homme selga panna</h1>
+        <p>Vali koht ja saa teada:</p>
+        <select id="location">
+            <option value="">--Vali asukoht--</option>
+            <option value="Estonia">Eesti</option>
+            <option value="Latvia">Läti</option>
+            <option value="Lithuania">Leedu</option>
+            <option value="Thailand">Tai</option>
+            <option value="Iceland">Island</option>
+            <option value="New Zealand">Uus-Meremaa</option>
+            <option value="Finland">Soome</option>
+        </select>
+        <button onclick="getAdvice()">Hangi nõuanne</button>
+        <div id="advice"></div>
+    </div>
+
+    <script>
+        async function getAdvice() {
+            const location = document.getElementById('location').value;
+            const adviceDiv = document.getElementById('advice');
+            adviceDiv.innerHTML = '';
+
+            if (location) {
+                try {
+                    // Lae temperatuuride andmed
+                    const tempResponse = await fetch(`https://wttr.in/${location}?format=%t`);
+                    const temperature = parseFloat(await tempResponse.text());
+
+                    // Lae ilmaolude andmed
+                    const conditionResponse = await fetch(`https://wttr.in/${location}?format=%C`);
+                    const weatherCondition = await conditionResponse.text();
+
+                    let advice = '';
+
+                    if (temperature < 20) {
+                        advice = 'On üsna jahe, võta kaasa jakk.';
+                        if (weatherCondition.toLowerCase().includes('rain')) {
+                            advice += ' Samuti näib, et võib sadada vihma, nii et võta kaasa vihmavari!';
+                        } else {
+                            advice += ' Tundub, et vihma ei tule, nii et chill.';
+                        }
+                    } else if (temperature >= 20 && temperature <= 25) {
+                        advice = 'On soe, jakk on valikuline.';
+                        if (weatherCondition.toLowerCase().includes('rain')) {
+                            advice += ' Kui aga sadab vihma, siis jakk on valikuline, kuid vihmavari on vajalik.';
+                        } else {
+                            advice += ' Tundub, et vihma ei tule, nii et chill.';
+                        }
+                    } else if (temperature > 25) {
+                        advice = 'On üsna soe, särgiga saab hakkama.';
+                        if (weatherCondition.toLowerCase().includes('rain')) {
+                            advice += ' Isegi nii, kui sadab vihma, on särk okei, aga võta ikka vihmavari kaasa.';
+                        } else {
+                            advice += ' Tundub, et vihma ei tule, nii et chill.';
+                        }
+                    }
+
+                    adviceDiv.innerHTML = `<h2>Nõuanne ${location} kohta:</h2><p>${advice || 'Hetkel ei ole konkreetset nõuannet.'}</p>`;
+                } catch (error) {
+                    adviceDiv.innerHTML = `<p>Viga ilmaandmete laadimisel. Palun proovi uuesti hiljem.</p>`;
+                }
+            } else {
+                adviceDiv.innerHTML = `<p>Palun vali asukoht.</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
